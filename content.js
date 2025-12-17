@@ -42,18 +42,22 @@ const COLOR_MODES = {
 };
 
 // Generate box-shadow for all edges glow
-function generateAllEdgesGlow(colorRgb, brightness, thickness) {
-  const blur = 80 + thickness;
-  const spread = 30 + thickness * 0.8;
+function generateAllEdgesGlow(colorRgb, brightness, thickness, sharpness) {
+  // Sharpness: 0 (soft) to 100 (sharp)
+  // Convert sharpness to blur: high sharpness = low blur
+  const blurBase = 200 - (sharpness * 1.8); // 200 (soft) down to ~20 (sharp)
+  const blur = Math.max(10, blurBase) + thickness * 0.5;
+  const spread = 40 + thickness * 0.8;
   return `inset 0 0 ${blur}px ${spread}px rgba(${colorRgb}, ${brightness})`;
 }
 
 // Generate box-shadow for single edge glow (top edge)
-function generateSingleEdgeGlow(colorRgb, brightness, thickness) {
-  const blur = 100 + thickness * 1.2;
-  const spread = 40 + thickness;
-  // Create a layered top glow for more visibility
-  return `inset 0 ${spread}px ${blur}px -${Math.max(0, spread - 20)}px rgba(${colorRgb}, ${brightness})`;
+function generateSingleEdgeGlow(colorRgb, brightness, thickness, sharpness) {
+  // Single edge glow from top
+  const blurBase = 250 - (sharpness * 2); // 250 (soft) to ~30 (sharp)
+  const blur = Math.max(15, blurBase) + thickness * 0.6;
+  const spread = 50 + thickness;
+  return `inset 0 ${spread}px ${blur}px -${Math.max(5, spread - 30)}px rgba(${colorRgb}, ${brightness})`;
 }
 
 // Update glow effect
@@ -68,20 +72,21 @@ function updateGlow(settings) {
 
   const colorMode = settings.colorMode || 'warm';
   const edgeMode = settings.edgeMode || 'all';
-  const brightness = settings.brightness || 0.5;
+  const brightness = settings.brightness || 0.8;
   const thickness = settings.thickness || 60;
+  const sharpness = settings.sharpness || 60;
 
   const colorRgb = COLOR_MODES[colorMode].rgb;
 
   let boxShadow;
   if (edgeMode === 'single') {
-    boxShadow = generateSingleEdgeGlow(colorRgb, brightness, thickness);
+    boxShadow = generateSingleEdgeGlow(colorRgb, brightness, thickness, sharpness);
   } else {
-    boxShadow = generateAllEdgesGlow(colorRgb, brightness, thickness);
+    boxShadow = generateAllEdgesGlow(colorRgb, brightness, thickness, sharpness);
   }
 
   overlay.style.boxShadow = boxShadow;
-  console.log('Glow updated:', { colorMode, edgeMode, brightness, thickness, boxShadow });
+  console.log('Glow updated:', { colorMode, edgeMode, brightness, thickness, sharpness, boxShadow });
 }
 
 // Listen for messages from popup with updated settings
@@ -98,8 +103,9 @@ function initializeGlow() {
     enabled: true,
     colorMode: 'warm',
     edgeMode: 'all',
-    brightness: 0.5,
-    thickness: 60
+    brightness: 0.8,
+    thickness: 60,
+    sharpness: 60
   }, (data) => {
     console.log('Loaded settings:', data);
     updateGlow(data);
