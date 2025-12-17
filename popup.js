@@ -5,32 +5,36 @@ const PRESETS = {
     enabled: true,
     colorMode: 'warm',
     edgeMode: 'all',
-    brightness: 0.45,
-    thickness: 50
+    brightness: 0.7,
+    thickness: 50,
+    sharpness: 70
   },
   cinema: {
     name: 'Cinema',
     enabled: true,
     colorMode: 'cold',
     edgeMode: 'all',
-    brightness: 0.65,
-    thickness: 75
+    brightness: 1.2,
+    thickness: 75,
+    sharpness: 40
   },
   midnight: {
     name: 'Midnight',
     enabled: true,
     colorMode: 'warm',
     edgeMode: 'all',
-    brightness: 0.25,
-    thickness: 80
+    brightness: 0.4,
+    thickness: 80,
+    sharpness: 30
   },
   energy: {
     name: 'Energy',
     enabled: true,
     colorMode: 'cold',
     edgeMode: 'all',
-    brightness: 0.75,
-    thickness: 60
+    brightness: 1.5,
+    thickness: 60,
+    sharpness: 80
   }
 };
 
@@ -39,8 +43,9 @@ chrome.storage.local.get({
   enabled: true,
   colorMode: 'warm',
   edgeMode: 'all',
-  brightness: 0.5,
-  thickness: 60
+  brightness: 0.8,
+  thickness: 60,
+  sharpness: 60
 }, (data) => {
   initializeUI(data);
   updateDisplay();
@@ -75,6 +80,7 @@ function initializeUI(data) {
   // Set sliders
   document.getElementById('brightness').value = data.brightness;
   document.getElementById('thickness').value = data.thickness;
+  document.getElementById('sharpness').value = data.sharpness;
 }
 
 // Enable/Disable toggle
@@ -133,7 +139,8 @@ function applyPreset(presetName) {
     colorMode: preset.colorMode,
     edgeMode: preset.edgeMode,
     brightness: preset.brightness,
-    thickness: preset.thickness
+    thickness: preset.thickness,
+    sharpness: preset.sharpness
   });
 
   // Update UI
@@ -142,6 +149,7 @@ function applyPreset(presetName) {
   setEdgeMode(preset.edgeMode);
   document.getElementById('brightness').value = preset.brightness;
   document.getElementById('thickness').value = preset.thickness;
+  document.getElementById('sharpness').value = preset.sharpness;
   updateDisplay();
   sendUpdate();
 }
@@ -162,11 +170,29 @@ document.getElementById('thickness').addEventListener('input', (e) => {
   sendUpdate();
 });
 
+// Sharpness slider
+document.getElementById('sharpness').addEventListener('input', (e) => {
+  const sharpness = parseFloat(e.target.value);
+  chrome.storage.local.set({ sharpness });
+  updateDisplay();
+  sendUpdate();
+});
+
 function updateDisplay() {
   const brightness = parseFloat(document.getElementById('brightness').value);
   const thickness = parseFloat(document.getElementById('thickness').value);
-  document.getElementById('brightness-value').textContent = Math.round(brightness * 100) + '%';
-  document.getElementById('thickness-value').textContent = Math.round(thickness);
+  const sharpness = parseFloat(document.getElementById('sharpness').value);
+
+  document.getElementById('brightness-value').textContent = brightness.toFixed(1) + 'x';
+  document.getElementById('thickness-value').textContent = Math.round(thickness) + 'px';
+
+  // Sharpness display
+  let sharpnessLabel = 'Soft';
+  if (sharpness < 33) sharpnessLabel = 'Very Soft';
+  else if (sharpness < 66) sharpnessLabel = 'Soft';
+  else if (sharpness < 85) sharpnessLabel = 'Sharp';
+  else sharpnessLabel = 'Very Sharp';
+  document.getElementById('sharpness-value').textContent = sharpnessLabel;
 }
 
 function sendUpdate() {
@@ -174,8 +200,9 @@ function sendUpdate() {
     enabled: true,
     colorMode: 'warm',
     edgeMode: 'all',
-    brightness: 0.5,
-    thickness: 60
+    brightness: 0.8,
+    thickness: 60,
+    sharpness: 60
   }, (data) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]) {
