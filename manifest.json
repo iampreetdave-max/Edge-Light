@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Ambient Glow",
+  "name": "Ring Light",
   "version": "1.0",
-  "description": "Soft warm ambient light glow around browser edges",
+  "description": "A soft, elegant glow around your browser viewport",
   "permissions": ["storage"],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Ambient Glow"
+    "default_title": "Ring Light"
   },
   "content_scripts": [
     {
