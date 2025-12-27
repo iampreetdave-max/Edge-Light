@@ -45,7 +45,8 @@ chrome.storage.local.get({
   edgeMode: 'all',
   brightness: 0.8,
   thickness: 60,
-  sharpness: 60
+  sharpness: 60,
+  breathing: false
 }, (data) => {
   initializeUI(data);
   updateDisplay();
@@ -81,6 +82,9 @@ function initializeUI(data) {
   document.getElementById('brightness').value = data.brightness;
   document.getElementById('thickness').value = data.thickness;
   document.getElementById('sharpness').value = data.sharpness;
+
+  // Set breathing toggle
+  document.getElementById('breathing-toggle').checked = data.breathing || false;
 }
 
 // Enable/Disable toggle
@@ -178,6 +182,13 @@ document.getElementById('sharpness').addEventListener('input', (e) => {
   sendUpdate();
 });
 
+// Breathing toggle
+document.getElementById('breathing-toggle').addEventListener('change', (e) => {
+  const breathing = e.target.checked;
+  chrome.storage.local.set({ breathing });
+  sendUpdate();
+});
+
 function updateDisplay() {
   const brightness = parseFloat(document.getElementById('brightness').value);
   const thickness = parseFloat(document.getElementById('thickness').value);
@@ -202,7 +213,8 @@ function sendUpdate() {
     edgeMode: 'all',
     brightness: 0.8,
     thickness: 60,
-    sharpness: 60
+    sharpness: 60,
+    breathing: false
   }, (data) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]) {
